@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Asset Visualizer</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="info-panel">
+        <h2>3D Asset Visualizer</h2>
+        <div class="control-group">
+            <p>1. 入力モードを選択</p>
+            <label><input type="radio" name="input-mode" value="amount" checked> 金額ベース</label>
+            <label><input type="radio" name="input-mode" value="percentage"> パーセンテージ</label>
+        </div>
+
+        <div id="asset-forms-container">
+            <!-- Asset forms will be injected here by JavaScript -->
+        </div>
+
+        <div class="control-group">
+            <button id="add-asset-btn">資産項目を追加</button>
+            <button id="visualize-btn">ビジュアライズ！</button>
+        </div>
+
+        <div id="display-options-container" class="control-group" style="display: none;">
+            <p>2. 表示オプション</p>
+            <label><input type="radio" name="display-mode" value="amount_percent" checked> 金額と%</label>
+            <label><input type="radio" name="display-mode" value="percent_only"> %のみ</label>
+        </div>
+    </div>
+
+    <div id="tooltip">
+        <!-- Tooltip content will be injected here -->
+    </div>
+
+    <div id="webgl-container"></div>
+
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "./three.module.js",
+            "three/addons/": "./jsm/"
+        }
+    }
+    </script>
+    <script type="module" src="main.js"></script>
+</body>
+</html>
