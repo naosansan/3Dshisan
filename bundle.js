@@ -29033,7 +29033,7 @@ void main() {
     const orbitRadius = majorCategories.length > 1 ? 15 : 0;
     majorCategories.forEach((major, index) => {
       const groupData = groupedAssets[major];
-      const totalParticles = Math.max(1, Math.round(groupData.totalPercent * 10));
+      const totalParticles = Math.max(1, Math.round(groupData.totalPercent * 50));
       const positions = [];
       const colors = [];
       const color = new Color();
@@ -29061,7 +29061,8 @@ void main() {
         const phi = Math.acos(-1 + 2 * i / (totalParticles - 1));
         const theta = Math.sqrt(totalParticles * Math.PI) * phi;
         const p = new Vector3();
-        p.setFromSphericalCoords(1, phi, theta);
+        const radius = Math.cbrt(Math.random());
+        p.setFromSphericalCoords(radius, phi, theta);
         positions.push(p.x, p.y, p.z);
         const particleColor = particleColors[i] || new Color(16777215);
         colors.push(particleColor.r, particleColor.g, particleColor.b);
