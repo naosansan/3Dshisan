@@ -298,33 +298,63 @@ function createSpheres(groupedAssets) {
 
     majorCategories.forEach((major, index) => {
         const groupData = groupedAssets[major];
-        const totalParticles = Math.round(groupData.totalPercent * 10);
-        if (totalParticles === 0) return;
+
+        // 1 particle per 0.1%, with a minimum of 1 particle to ensure sphere is always visible.
+        const totalParticles = Math.max(1, Math.round(groupData.totalPercent * 10));
 
         const positions = [];
         const colors = [];
         const color = new THREE.Color();
+        
+        // Create a color array for all particles first
+        const particleColors = [];
+        let assignedParticles = 0;
 
-        groupData.children.forEach(child => {
-            const childParticles = Math.round(child.percent * 10);
+        groupData.children.forEach((child, childIndex) => {
+            const proportion = child.percent / groupData.totalPercent;
+            let numParticlesForChild;
+
+            if (childIndex === groupData.children.length - 1) {
+                // Assign remaining particles to the last child to ensure the total is correct
+                numParticlesForChild = totalParticles - assignedParticles;
+            } else {
+                numParticlesForChild = Math.round(proportion * totalParticles);
+            }
+            
+            assignedParticles += numParticlesForChild;
+
             color.set(child.color);
-            for (let i = 0; i < childParticles; i++) {
-                // Distribute points on a sphere
-                const phi = Math.acos(-1 + (2 * i) / (totalParticles - 1));
-                const theta = Math.sqrt(totalParticles * Math.PI) * phi;
-                
-                const p = new THREE.Vector3();
-                p.setFromSphericalCoords(1, phi, theta); // radius of 1 for now
-                positions.push(p.x, p.y, p.z);
-                colors.push(color.r, color.g, color.b);
+            for (let i = 0; i < numParticlesForChild; i++) {
+                particleColors.push(color.clone());
             }
         });
+
+        // Shuffle colors for a mixed look
+        for (let i = particleColors.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [particleColors[i], particleColors[j]] = [particleColors[j], particleColors[i]];
+        }
+
+        // Generate particle positions and apply shuffled colors
+        for (let i = 0; i < totalParticles; i++) {
+            // Use Fibonacci lattice for even distribution on a sphere
+            const phi = Math.acos(-1 + (2 * i) / (totalParticles - 1));
+            const theta = Math.sqrt(totalParticles * Math.PI) * phi;
+
+            const p = new THREE.Vector3();
+            p.setFromSphericalCoords(1, phi, theta);
+            positions.push(p.x, p.y, p.z);
+
+            const particleColor = particleColors[i] || new THREE.Color(0xffffff); // Fallback color
+            colors.push(particleColor.r, particleColor.g, particleColor.b);
+        }
 
         const geometry = new THREE.BufferGeometry();
         geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
         geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
 
-        const sphereRadius = Math.pow(totalParticles, 1/3) * 0.5;
+        // Sphere size based on number of particles, with an increased multiplier.
+        const sphereRadius = Math.pow(totalParticles, 1/3) * 0.6;
         geometry.scale(sphereRadius, sphereRadius, sphereRadius);
 
         const material = new THREE.PointsMaterial({
@@ -339,7 +369,6 @@ function createSpheres(groupedAssets) {
 
         const sphere = new THREE.Points(geometry, material);
         
-        // Position spheres in a circle
         const x = orbitRadius * Math.cos(index * angleStep);
         const z = orbitRadius * Math.sin(index * angleStep);
         sphere.position.set(x, 0, z);

@@ -29033,27 +29033,43 @@ void main() {
     const orbitRadius = majorCategories.length > 1 ? 15 : 0;
     majorCategories.forEach((major, index) => {
       const groupData = groupedAssets[major];
-      const totalParticles = Math.round(groupData.totalPercent * 10);
-      if (totalParticles === 0) return;
+      const totalParticles = Math.max(1, Math.round(groupData.totalPercent * 10));
       const positions = [];
       const colors = [];
       const color = new Color();
-      groupData.children.forEach((child) => {
-        const childParticles = Math.round(child.percent * 10);
+      const particleColors = [];
+      let assignedParticles = 0;
+      groupData.children.forEach((child, childIndex) => {
+        const proportion = child.percent / groupData.totalPercent;
+        let numParticlesForChild;
+        if (childIndex === groupData.children.length - 1) {
+          numParticlesForChild = totalParticles - assignedParticles;
+        } else {
+          numParticlesForChild = Math.round(proportion * totalParticles);
+        }
+        assignedParticles += numParticlesForChild;
         color.set(child.color);
-        for (let i = 0; i < childParticles; i++) {
-          const phi = Math.acos(-1 + 2 * i / (totalParticles - 1));
-          const theta = Math.sqrt(totalParticles * Math.PI) * phi;
-          const p = new Vector3();
-          p.setFromSphericalCoords(1, phi, theta);
-          positions.push(p.x, p.y, p.z);
-          colors.push(color.r, color.g, color.b);
+        for (let i = 0; i < numParticlesForChild; i++) {
+          particleColors.push(color.clone());
         }
       });
+      for (let i = particleColors.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [particleColors[i], particleColors[j]] = [particleColors[j], particleColors[i]];
+      }
+      for (let i = 0; i < totalParticles; i++) {
+        const phi = Math.acos(-1 + 2 * i / (totalParticles - 1));
+        const theta = Math.sqrt(totalParticles * Math.PI) * phi;
+        const p = new Vector3();
+        p.setFromSphericalCoords(1, phi, theta);
+        positions.push(p.x, p.y, p.z);
+        const particleColor = particleColors[i] || new Color(16777215);
+        colors.push(particleColor.r, particleColor.g, particleColor.b);
+      }
       const geometry = new BufferGeometry();
       geometry.setAttribute("position", new Float32BufferAttribute(positions, 3));
       geometry.setAttribute("color", new Float32BufferAttribute(colors, 3));
-      const sphereRadius = Math.pow(totalParticles, 1 / 3) * 0.5;
+      const sphereRadius = Math.pow(totalParticles, 1 / 3) * 0.6;
       geometry.scale(sphereRadius, sphereRadius, sphereRadius);
       const material = new PointsMaterial({
         size: 0.1,
