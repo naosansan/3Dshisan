@@ -29033,7 +29033,7 @@ void main() {
     const orbitRadius = majorCategories.length > 1 ? 15 : 0;
     majorCategories.forEach((major, index) => {
       const groupData = groupedAssets[major];
-      const totalParticles = Math.max(1, Math.round(groupData.totalPercent * 50));
+      const totalParticles = Math.max(1, Math.round(groupData.totalPercent * 100));
       const positions = [];
       const colors = [];
       const color = new Color();

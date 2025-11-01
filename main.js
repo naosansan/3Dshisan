@@ -300,7 +300,7 @@ function createSpheres(groupedAssets) {
         const groupData = groupedAssets[major];
 
         // 5 particles per 0.1%
-        const totalParticles = Math.max(1, Math.round(groupData.totalPercent * 50));
+        const totalParticles = Math.max(1, Math.round(groupData.totalPercent * 100));
 
         const positions = [];
         const colors = [];
