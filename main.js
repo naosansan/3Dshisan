@@ -87,8 +87,76 @@ displayModeRadios.forEach(radio => {
     radio.addEventListener('change', updateTooltipContent);
 });
 
+// --- Bulk Input Logic ---
+const bulkMajorCategorySelect = document.getElementById('bulk-major-category');
+const bulkCustomMajorCategoryInput = document.getElementById('bulk-custom-major-category');
+const bulkPasteInput = document.getElementById('bulk-paste-input');
+const bulkAddBtn = document.getElementById('bulk-add-btn');
+
+// Populate dropdown
+bulkMajorCategorySelect.innerHTML = MAJOR_CATEGORIES.map(c => `<option value="${c}">${c}</option>`).join('');
+
+bulkMajorCategorySelect.addEventListener('change', () => {
+    bulkCustomMajorCategoryInput.style.display = bulkMajorCategorySelect.value === 'その他' ? 'block' : 'none';
+});
+
+bulkAddBtn.addEventListener('click', () => {
+    let major = bulkMajorCategorySelect.value;
+    if (major === 'その他') {
+        major = bulkCustomMajorCategoryInput.value.trim();
+    }
+
+    if (!major) {
+        alert('一括入力用の大カテゴリーを選択または入力してください。');
+        return;
+    }
+
+    const text = bulkPasteInput.value.trim();
+    if (!text) {
+        alert('貼り付けるデータを入力してください。');
+        return;
+    }
+
+    const lines = text.split('\n');
+    lines.forEach(line => {
+        if (!line.trim()) return;
+
+        const parts = line.split(/[\t,]/);
+        if (parts.length < 2) return; // Skip invalid lines
+
+        const [minor, value] = parts.map(p => p.trim());
+
+        addAssetForm(); // Add a new empty form
+
+        const newForm = document.getElementById(`asset-form-${assetFormCount}`);
+        if (!newForm) return;
+
+        const majorSelect = newForm.querySelector('select[name="major-category"]');
+        const customMajorInput = newForm.querySelector('input[name="custom-major-category"]');
+        const minorInput = newForm.querySelector('input[name="minor-category"]');
+        const valueInput = newForm.querySelector('input[name="value"]');
+
+        // Set values on the new form
+        const isOther = !MAJOR_CATEGORIES.includes(major);
+        if (isOther) {
+            majorSelect.value = 'その他';
+            customMajorInput.style.display = 'block';
+            customMajorInput.value = major;
+        } else {
+            majorSelect.value = major;
+        }
+
+        minorInput.value = minor;
+        valueInput.value = value;
+    });
+
+    // Clear the textarea after import
+    bulkPasteInput.value = '';
+});
+
 
 // --- 3D Visualization Logic ---
+
 
 function init() {
     // Scene
