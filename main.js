@@ -51,8 +51,8 @@ function addAssetForm() {
                 <input type="text" name="minor-category" placeholder="S&P500, Bitcoinなど">
             </div>
             <div>
-                <label>金額(円) or 割合(%)</label>
-                <input type="number" name="value" placeholder="100000 or 50">
+                <label>金額(円)</label>
+                <input type="number" name="value" placeholder="100000">
             </div>
         </div>
     `;
@@ -74,15 +74,7 @@ function addAssetForm() {
 
 addAssetBtn.addEventListener('click', addAssetForm);
 
-inputModeRadios.forEach(radio => {
-    radio.addEventListener('change', (e) => {
-        if (e.target.value === 'amount') {
-            displayOptionsContainer.style.display = 'block';
-        } else {
-            displayOptionsContainer.style.display = 'none';
-        }
-    });
-});
+
 
 displayModeRadios.forEach(radio => {
     radio.addEventListener('change', updateTooltipContent);
@@ -263,7 +255,7 @@ function updateTooltipContent() {
     if (!intersectedObject) return;
 
     const data = intersectedObject.userData;
-    const inputMode = document.querySelector('input[name="input-mode"]:checked').value;
+        const inputMode = 'amount';
     const displayMode = document.querySelector('input[name="display-mode"]:checked').value;
 
     let content = `<h3>${data.majorCategory}</h3><ul>`;
@@ -299,7 +291,7 @@ visualizeBtn.addEventListener('click', () => {
     }
     currentDisplayData = null;
 
-    const inputMode = document.querySelector('input[name="input-mode"]:checked').value;
+        const inputMode = 'amount';
 
     // 2. Create Sun if in amount mode (independent of other assets)
     if (inputMode === 'amount') {
@@ -451,7 +443,7 @@ function createSpheres(groupedAssets) {
     majorCategories.forEach((major, index) => {
         const groupData = groupedAssets[major];
 
-        const inputMode = document.querySelector('input[name="input-mode"]:checked').value;
+            const inputMode = 'amount';
         let sphereRadius;
         let totalParticles;
 

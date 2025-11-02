@@ -28845,8 +28845,8 @@ void main() {
                 <input type="text" name="minor-category" placeholder="S&P500, Bitcoin\u306A\u3069">
             </div>
             <div>
-                <label>\u91D1\u984D(\u5186) or \u5272\u5408(%)</label>
-                <input type="number" name="value" placeholder="100000 or 50">
+                <label>\u91D1\u984D(\u5186)</label>
+                <input type="number" name="value" placeholder="100000">
             </div>
         </div>
     `;
@@ -28863,15 +28863,6 @@ void main() {
     });
   }
   addAssetBtn.addEventListener("click", addAssetForm);
-  inputModeRadios.forEach((radio) => {
-    radio.addEventListener("change", (e) => {
-      if (e.target.value === "amount") {
-        displayOptionsContainer.style.display = "block";
-      } else {
-        displayOptionsContainer.style.display = "none";
-      }
-    });
-  });
   displayModeRadios.forEach((radio) => {
     radio.addEventListener("change", updateTooltipContent);
   });
@@ -29001,7 +28992,7 @@ void main() {
   function updateTooltipContent() {
     if (!intersectedObject) return;
     const data = intersectedObject.userData;
-    const inputMode = document.querySelector('input[name="input-mode"]:checked').value;
+    const inputMode = "amount";
     const displayMode = document.querySelector('input[name="display-mode"]:checked').value;
     let content = `<h3>${data.majorCategory}</h3><ul>`;
     data.children.forEach((child) => {
@@ -29030,7 +29021,7 @@ void main() {
       sunSphere = null;
     }
     currentDisplayData = null;
-    const inputMode = document.querySelector('input[name="input-mode"]:checked').value;
+    const inputMode = "amount";
     if (inputMode === "amount") {
       createSun();
     }
@@ -29152,7 +29143,7 @@ void main() {
     const orbitRadius = 60;
     majorCategories.forEach((major, index) => {
       const groupData = groupedAssets[major];
-      const inputMode = document.querySelector('input[name="input-mode"]:checked').value;
+      const inputMode = "amount";
       let sphereRadius;
       let totalParticles;
       if (inputMode === "amount") {

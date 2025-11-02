@@ -9,14 +9,10 @@
 <body>
     <div id="info-panel">
         <h2>3D Asset Visualizer</h2>
-        <div class="control-group">
-            <p>1. 入力モードを選択</p>
-            <label><input type="radio" name="input-mode" value="amount" checked> 金額ベース</label>
-            <label><input type="radio" name="input-mode" value="percentage"> パーセンテージ</label>
-        </div>
+        
 
         <div id="bulk-input-area" class="control-group">
-            <p>2. 一括入力</p>
+            <p>1. 一括入力</p>
             <div>
                 <label>大カテゴリーを選択</label>
                 <select id="bulk-major-category">
@@ -25,7 +21,7 @@
                 <input type="text" id="bulk-custom-major-category" class="custom-major-category" style="display: none; margin-top: 5px;" placeholder="大カテゴリー名を入力">
             </div>
             <div>
-                <label>小カテゴリー, 金額(or %) を貼り付け (Excelからコピー＆ペーストも可能)</label>
+                                <label>小カテゴリー, 金額を貼り付け (Excelからコピー＆ペーストも可能)</label>
                 <textarea id="bulk-paste-input" rows="5" placeholder="S&P500,50000
 NASDAQ100,25000"></textarea>
             </div>
