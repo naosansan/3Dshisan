@@ -29143,7 +29143,7 @@ void main() {
   function createSpheres(groupedAssets) {
     const majorCategories = Object.keys(groupedAssets);
     const angleStep = 2 * Math.PI / majorCategories.length;
-    const orbitRadius = 30;
+    const orbitRadius = 60;
     majorCategories.forEach((major, index) => {
       const groupData = groupedAssets[major];
       const inputMode = document.querySelector('input[name="input-mode"]:checked').value;
