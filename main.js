@@ -255,23 +255,25 @@ function updateTooltipContent() {
     if (!intersectedObject) return;
 
     const data = intersectedObject.userData;
-        const inputMode = 'amount';
-    const displayMode = document.querySelector('input[name="display-mode"]:checked').value;
 
+    // Handle Sun tooltip
+    if (data.isSun) {
+        tooltip.innerHTML = `<h3>${data.majorCategory}</h3><ul><li>¥${data.value.toLocaleString()}</li></ul>`;
+        return;
+    }
+
+    // Handle asset sphere tooltips
+    const displayMode = document.querySelector('input[name="display-mode"]:checked').value;
     let content = `<h3>${data.majorCategory}</h3><ul>`;
     
     data.children.forEach(child => {
+        const amountStr = `¥${child.value.toLocaleString()}`;
+        const percentStr = `${child.percent.toFixed(1)}%`;
         let displayValue = '';
-        if (inputMode === 'amount') {
-            const amountStr = `¥${child.value.toLocaleString()}`;
-            const percentStr = `${child.percent.toFixed(1)}%`;
-            if (displayMode === 'amount_percent') {
-                displayValue = `${amountStr} (${percentStr})`;
-            } else {
-                displayValue = percentStr;
-            }
+        if (displayMode === 'amount_percent') {
+            displayValue = `${amountStr} (${percentStr})`;
         } else {
-            displayValue = `${child.percent.toFixed(1)}%`;
+            displayValue = percentStr;
         }
         content += `<li><span style="color: #${new THREE.Color(child.color).getHexString()}">●</span> ${child.minor}: ${displayValue}</li>`;
     });
@@ -431,7 +433,16 @@ function createSun() {
 
     sunSphere = new THREE.Points(geometry, material);
     sunSphere.position.set(0, 0, 0); // Center of the scene
+
+    // Add data for tooltip
+    sunSphere.userData = {
+        isSun: true,
+        majorCategory: '太陽',
+        value: 100000000
+    };
+
     scene.add(sunSphere);
+    assetSpheres.push(sunSphere); // Add to intersectable objects
 }
 
 

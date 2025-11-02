@@ -28992,21 +28992,20 @@ void main() {
   function updateTooltipContent() {
     if (!intersectedObject) return;
     const data = intersectedObject.userData;
-    const inputMode = "amount";
+    if (data.isSun) {
+      tooltip.innerHTML = `<h3>${data.majorCategory}</h3><ul><li>\xA5${data.value.toLocaleString()}</li></ul>`;
+      return;
+    }
     const displayMode = document.querySelector('input[name="display-mode"]:checked').value;
     let content = `<h3>${data.majorCategory}</h3><ul>`;
     data.children.forEach((child) => {
+      const amountStr = `\xA5${child.value.toLocaleString()}`;
+      const percentStr = `${child.percent.toFixed(1)}%`;
       let displayValue = "";
-      if (inputMode === "amount") {
-        const amountStr = `\xA5${child.value.toLocaleString()}`;
-        const percentStr = `${child.percent.toFixed(1)}%`;
-        if (displayMode === "amount_percent") {
-          displayValue = `${amountStr} (${percentStr})`;
-        } else {
-          displayValue = percentStr;
-        }
+      if (displayMode === "amount_percent") {
+        displayValue = `${amountStr} (${percentStr})`;
       } else {
-        displayValue = `${child.percent.toFixed(1)}%`;
+        displayValue = percentStr;
       }
       content += `<li><span style="color: #${new Color(child.color).getHexString()}">\u25CF</span> ${child.minor}: ${displayValue}</li>`;
     });
@@ -29135,7 +29134,13 @@ void main() {
     });
     sunSphere = new Points(geometry, material);
     sunSphere.position.set(0, 0, 0);
+    sunSphere.userData = {
+      isSun: true,
+      majorCategory: "\u592A\u967D",
+      value: 1e8
+    };
     scene.add(sunSphere);
+    assetSpheres.push(sunSphere);
   }
   function createSpheres(groupedAssets) {
     const majorCategories = Object.keys(groupedAssets);
