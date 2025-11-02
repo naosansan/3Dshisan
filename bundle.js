@@ -28925,8 +28925,8 @@ void main() {
   });
   function init() {
     scene = new Scene();
-    camera = new PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 2e3);
-    camera.position.z = 50;
+    camera = new PerspectiveCamera(40, window.innerWidth / window.innerHeight, 0.1, 2e3);
+    camera.position.z = 150;
     renderer = new WebGLRenderer({ antialias: true });
     renderer.setPixelRatio(window.devicePixelRatio);
     renderer.setSize(window.innerWidth, window.innerHeight);
@@ -29090,7 +29090,8 @@ void main() {
   });
   function createSun() {
     const sunAmount = 1e8;
-    const totalParticles = Math.round(sunAmount / 1e4 * 3);
+    const sphereRadius = 20;
+    const totalParticles = 5e4;
     const positions = [];
     const colors = [];
     const sunColorsData = [
@@ -29113,11 +29114,17 @@ void main() {
       [particleColors[i], particleColors[j]] = [particleColors[j], particleColors[i]];
     }
     for (let i = 0; i < totalParticles; i++) {
-      const phi = Math.acos(-1 + 2 * i / (totalParticles - 1));
-      const theta = Math.sqrt(totalParticles * Math.PI) * phi;
-      const p = new Vector3();
-      const radius = Math.cbrt(Math.random());
-      p.setFromSphericalCoords(radius, phi, theta);
+      let p;
+      do {
+        p = new Vector3(
+          Math.random() * 2 - 1,
+          // x from -1 to 1
+          Math.random() * 2 - 1,
+          // y from -1 to 1
+          Math.random() * 2 - 1
+          // z from -1 to 1
+        );
+      } while (p.lengthSq() > 1);
       positions.push(p.x, p.y, p.z);
       const particleColor = particleColors[i];
       colors.push(particleColor.r, particleColor.g, particleColor.b);
@@ -29125,7 +29132,6 @@ void main() {
     const geometry = new BufferGeometry();
     geometry.setAttribute("position", new Float32BufferAttribute(positions, 3));
     geometry.setAttribute("color", new Float32BufferAttribute(colors, 3));
-    const sphereRadius = Math.pow(totalParticles, 1 / 3) * 0.6;
     geometry.scale(sphereRadius, sphereRadius, sphereRadius);
     const material = new PointsMaterial({
       size: 0.1,
@@ -29147,11 +29153,15 @@ void main() {
     majorCategories.forEach((major, index) => {
       const groupData = groupedAssets[major];
       const inputMode = document.querySelector('input[name="input-mode"]:checked').value;
+      let sphereRadius;
       let totalParticles;
       if (inputMode === "amount") {
-        totalParticles = Math.max(1, Math.round(groupData.totalValue / 1e4 * 3));
+        const value = groupData.totalValue;
+        sphereRadius = 20 * Math.pow(value / 1e8, 1 / 3);
+        totalParticles = Math.round(value / 1e4 * 5);
       } else {
-        totalParticles = Math.max(1, Math.round(groupData.totalPercent * 100));
+        sphereRadius = 2 * Math.pow(groupData.totalPercent, 1 / 3);
+        totalParticles = Math.max(200, Math.round(groupData.totalPercent * 500));
       }
       const positions = [];
       const colors = [];
@@ -29178,11 +29188,17 @@ void main() {
         [particleColors[i], particleColors[j]] = [particleColors[j], particleColors[i]];
       }
       for (let i = 0; i < totalParticles; i++) {
-        const phi = Math.acos(-1 + 2 * i / (totalParticles - 1));
-        const theta = Math.sqrt(totalParticles * Math.PI) * phi;
-        const p = new Vector3();
-        const radius = Math.cbrt(Math.random());
-        p.setFromSphericalCoords(radius, phi, theta);
+        let p;
+        do {
+          p = new Vector3(
+            Math.random() * 2 - 1,
+            // x from -1 to 1
+            Math.random() * 2 - 1,
+            // y from -1 to 1
+            Math.random() * 2 - 1
+            // z from -1 to 1
+          );
+        } while (p.lengthSq() > 1);
         positions.push(p.x, p.y, p.z);
         const particleColor = particleColors[i] || new Color(16777215);
         colors.push(particleColor.r, particleColor.g, particleColor.b);
@@ -29190,7 +29206,6 @@ void main() {
       const geometry = new BufferGeometry();
       geometry.setAttribute("position", new Float32BufferAttribute(positions, 3));
       geometry.setAttribute("color", new Float32BufferAttribute(colors, 3));
-      const sphereRadius = Math.pow(totalParticles, 1 / 3) * 0.6;
       geometry.scale(sphereRadius, sphereRadius, sphereRadius);
       const material = new PointsMaterial({
         size: 0.1,

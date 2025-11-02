@@ -164,8 +164,8 @@ function init() {
     scene = new THREE.Scene();
 
     // Camera
-    camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 2000);
-    camera.position.z = 50; // Adjusted camera position for better initial view
+    camera = new THREE.PerspectiveCamera(40, window.innerWidth / window.innerHeight, 0.1, 2000); // FOV changed to 40
+    camera.position.z = 150; // Adjusted camera position for new FOV
 
     // Renderer
     renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -378,7 +378,8 @@ visualizeBtn.addEventListener('click', () => {
 
 function createSun() {
     const sunAmount = 100000000; // 1億円
-    const totalParticles = Math.round((sunAmount / 10000) * 3); // 30,000
+    const sphereRadius = 20; // Base radius for the sun
+    const totalParticles = 50000; // 1億円 / 1万円 * 5個 = 50,000個
 
     const positions = [];
     const colors = [];
@@ -403,13 +404,17 @@ function createSun() {
         [particleColors[i], particleColors[j]] = [particleColors[j], particleColors[i]];
     }
 
+    // Use rejection sampling for a perfectly uniform spherical distribution
     for (let i = 0; i < totalParticles; i++) {
-        const phi = Math.acos(-1 + (2 * i) / (totalParticles - 1));
-        const theta = Math.sqrt(totalParticles * Math.PI) * phi;
+        let p;
+        do {
+            p = new THREE.Vector3(
+                Math.random() * 2 - 1, // x from -1 to 1
+                Math.random() * 2 - 1, // y from -1 to 1
+                Math.random() * 2 - 1  // z from -1 to 1
+            );
+        } while (p.lengthSq() > 1); // Use lengthSq for efficiency, discard if outside unit sphere
 
-        const p = new THREE.Vector3();
-        const radius = Math.cbrt(Math.random());
-        p.setFromSphericalCoords(radius, phi, theta);
         positions.push(p.x, p.y, p.z);
 
         const particleColor = particleColors[i];
@@ -420,7 +425,6 @@ function createSun() {
     geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
     geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
 
-    const sphereRadius = Math.pow(totalParticles, 1/3) * 0.6;
     geometry.scale(sphereRadius, sphereRadius, sphereRadius);
 
     const material = new THREE.PointsMaterial({
@@ -442,20 +446,22 @@ function createSun() {
 function createSpheres(groupedAssets) {
     const majorCategories = Object.keys(groupedAssets);
     const angleStep = (2 * Math.PI) / majorCategories.length;
-        const orbitRadius = 60; // Increased orbit radius for better separation
+    const orbitRadius = 60; // Increased orbit radius for better separation
 
     majorCategories.forEach((major, index) => {
         const groupData = groupedAssets[major];
 
         const inputMode = document.querySelector('input[name="input-mode"]:checked').value;
+        let sphereRadius;
         let totalParticles;
 
         if (inputMode === 'amount') {
-            // 1万円で3個のパーティクル
-            totalParticles = Math.max(1, Math.round((groupData.totalValue / 10000) * 3));
-        } else {
-            // 以前のロジック (割合ベース)
-            totalParticles = Math.max(1, Math.round(groupData.totalPercent * 100));
+            const value = groupData.totalValue;
+            sphereRadius = 20 * Math.pow(value / 100000000, 1/3);
+            totalParticles = Math.round((value / 10000) * 5);
+        } else { // percentage mode
+            sphereRadius = 2 * Math.pow(groupData.totalPercent, 1/3);
+            totalParticles = Math.max(200, Math.round(groupData.totalPercent * 500));
         }
 
         const positions = [];
@@ -465,7 +471,6 @@ function createSpheres(groupedAssets) {
         const particleColors = [];
         let assignedParticles = 0;
 
-        // Avoid division by zero if totalPercent is 0
         const totalPercentForGroup = groupData.totalPercent > 0 ? groupData.totalPercent : 1;
 
         groupData.children.forEach((child, childIndex) => {
@@ -492,14 +497,17 @@ function createSpheres(groupedAssets) {
             [particleColors[i], particleColors[j]] = [particleColors[j], particleColors[i]];
         }
 
+        // Use rejection sampling for a perfectly uniform spherical distribution
         for (let i = 0; i < totalParticles; i++) {
-            const phi = Math.acos(-1 + (2 * i) / (totalParticles - 1));
-            const theta = Math.sqrt(totalParticles * Math.PI) * phi;
+            let p;
+            do {
+                p = new THREE.Vector3(
+                    Math.random() * 2 - 1, // x from -1 to 1
+                    Math.random() * 2 - 1, // y from -1 to 1
+                    Math.random() * 2 - 1  // z from -1 to 1
+                );
+            } while (p.lengthSq() > 1); // Use lengthSq for efficiency, discard if outside unit sphere
 
-            const p = new THREE.Vector3();
-            // Distribute particles inside the sphere
-            const radius = Math.cbrt(Math.random());
-            p.setFromSphericalCoords(radius, phi, theta);
             positions.push(p.x, p.y, p.z);
 
             const particleColor = particleColors[i] || new THREE.Color(0xffffff);
@@ -510,7 +518,6 @@ function createSpheres(groupedAssets) {
         geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
         geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
 
-        const sphereRadius = Math.pow(totalParticles, 1/3) * 0.6;
         geometry.scale(sphereRadius, sphereRadius, sphereRadius);
 
         const material = new THREE.PointsMaterial({
