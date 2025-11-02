@@ -28804,6 +28804,7 @@ void main() {
   var controls;
   var starfield;
   var assetSpheres = [];
+  var sunSphere = null;
   var raycaster;
   var mouse;
   var intersectedObject = null;
@@ -28925,7 +28926,7 @@ void main() {
   function init() {
     scene = new Scene();
     camera = new PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 2e3);
-    camera.position.z = 30;
+    camera.position.z = 50;
     renderer = new WebGLRenderer({ antialias: true });
     renderer.setPixelRatio(window.devicePixelRatio);
     renderer.setSize(window.innerWidth, window.innerHeight);
@@ -29024,11 +29025,18 @@ void main() {
   visualizeBtn.addEventListener("click", () => {
     assetSpheres.forEach((sphere) => scene.remove(sphere));
     assetSpheres = [];
+    if (sunSphere) {
+      scene.remove(sunSphere);
+      sunSphere = null;
+    }
     currentDisplayData = null;
+    const inputMode = document.querySelector('input[name="input-mode"]:checked').value;
+    if (inputMode === "amount") {
+      createSun();
+    }
     const assetForms = document.querySelectorAll(".asset-form");
     let assets = [];
     let totalValue = 0;
-    const inputMode = document.querySelector('input[name="input-mode"]:checked').value;
     assetForms.forEach((form) => {
       let major = form.querySelector('select[name="major-category"]').value;
       if (major === "\u305D\u306E\u4ED6") {
@@ -29042,7 +29050,9 @@ void main() {
       }
     });
     if (assets.length === 0) {
-      alert("\u6709\u52B9\u306A\u8CC7\u7523\u30C7\u30FC\u30BF\u304C\u3042\u308A\u307E\u305B\u3093\u3002");
+      if (inputMode !== "amount") {
+        alert("\u6709\u52B9\u306A\u8CC7\u7523\u30C7\u30FC\u30BF\u304C\u3042\u308A\u307E\u305B\u3093\u3002");
+      }
       return;
     }
     if (inputMode === "percentage" && Math.abs(totalValue - 100) > 0.1) {
@@ -29050,16 +29060,19 @@ void main() {
       return;
     }
     assets.forEach((asset) => {
-      asset.percent = inputMode === "amount" ? asset.value / totalValue * 100 : asset.value;
+      asset.percent = inputMode === "amount" && totalValue > 0 ? asset.value / totalValue * 100 : asset.value;
     });
     const groupedAssets = {};
     let minorColorIndex = 0;
     const minorColorMap = {};
     assets.forEach((asset) => {
       if (!groupedAssets[asset.major]) {
-        groupedAssets[asset.major] = { totalPercent: 0, children: [] };
+        groupedAssets[asset.major] = { totalPercent: 0, totalValue: 0, children: [] };
       }
       groupedAssets[asset.major].totalPercent += asset.percent;
+      if (inputMode === "amount") {
+        groupedAssets[asset.major].totalValue += asset.value;
+      }
       if (!minorColorMap[asset.minor]) {
         minorColorMap[asset.minor] = PARTICLE_COLOR_PALETTE[minorColorIndex % PARTICLE_COLOR_PALETTE.length];
         minorColorIndex++;
@@ -29075,20 +29088,79 @@ void main() {
     }
     createSpheres(groupedAssets);
   });
+  function createSun() {
+    const sunAmount = 1e8;
+    const totalParticles = Math.round(sunAmount / 1e4 * 3);
+    const positions = [];
+    const colors = [];
+    const sunColorsData = [
+      { color: new Color(16711680), count: Math.floor(totalParticles / 3) },
+      // Red
+      { color: new Color(16776960), count: Math.floor(totalParticles / 3) },
+      // Yellow
+      { color: new Color(16753920), count: 0 }
+      // Orange
+    ];
+    sunColorsData[2].count = totalParticles - sunColorsData[0].count - sunColorsData[1].count;
+    const particleColors = [];
+    sunColorsData.forEach((data) => {
+      for (let i = 0; i < data.count; i++) {
+        particleColors.push(data.color);
+      }
+    });
+    for (let i = particleColors.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [particleColors[i], particleColors[j]] = [particleColors[j], particleColors[i]];
+    }
+    for (let i = 0; i < totalParticles; i++) {
+      const phi = Math.acos(-1 + 2 * i / (totalParticles - 1));
+      const theta = Math.sqrt(totalParticles * Math.PI) * phi;
+      const p = new Vector3();
+      const radius = Math.cbrt(Math.random());
+      p.setFromSphericalCoords(radius, phi, theta);
+      positions.push(p.x, p.y, p.z);
+      const particleColor = particleColors[i];
+      colors.push(particleColor.r, particleColor.g, particleColor.b);
+    }
+    const geometry = new BufferGeometry();
+    geometry.setAttribute("position", new Float32BufferAttribute(positions, 3));
+    geometry.setAttribute("color", new Float32BufferAttribute(colors, 3));
+    const sphereRadius = Math.pow(totalParticles, 1 / 3) * 0.6;
+    geometry.scale(sphereRadius, sphereRadius, sphereRadius);
+    const material = new PointsMaterial({
+      size: 0.1,
+      vertexColors: true,
+      blending: AdditiveBlending,
+      transparent: true,
+      opacity: 0.9,
+      depthWrite: false,
+      sizeAttenuation: true
+    });
+    sunSphere = new Points(geometry, material);
+    sunSphere.position.set(0, 0, 0);
+    scene.add(sunSphere);
+  }
   function createSpheres(groupedAssets) {
     const majorCategories = Object.keys(groupedAssets);
     const angleStep = 2 * Math.PI / majorCategories.length;
-    const orbitRadius = majorCategories.length > 1 ? 15 : 0;
+    const orbitRadius = 30;
     majorCategories.forEach((major, index) => {
       const groupData = groupedAssets[major];
-      const totalParticles = Math.max(1, Math.round(groupData.totalPercent * 100));
+      const inputMode = document.querySelector('input[name="input-mode"]:checked').value;
+      let totalParticles;
+      if (inputMode === "amount") {
+        totalParticles = Math.max(1, Math.round(groupData.totalValue / 1e4 * 3));
+      } else {
+        totalParticles = Math.max(1, Math.round(groupData.totalPercent * 100));
+      }
       const positions = [];
       const colors = [];
       const color = new Color();
       const particleColors = [];
       let assignedParticles = 0;
+      const totalPercentForGroup = groupData.totalPercent > 0 ? groupData.totalPercent : 1;
       groupData.children.forEach((child, childIndex) => {
-        const proportion = child.percent / groupData.totalPercent;
+        const proportion = child.percent / totalPercentForGroup;
         let numParticlesForChild;
         if (childIndex === groupData.children.length - 1) {
           numParticlesForChild = totalParticles - assignedParticles;

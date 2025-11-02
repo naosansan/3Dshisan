@@ -16,6 +16,7 @@ const displayModeRadios = document.querySelectorAll('input[name="display-mode"]'
 let scene, camera, renderer, controls;
 let starfield;
 let assetSpheres = [];
+let sunSphere = null; // For the sun object
 let raycaster, mouse;
 let intersectedObject = null;
 let currentDisplayData = null;
@@ -164,7 +165,7 @@ function init() {
 
     // Camera
     camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 2000);
-    camera.position.z = 30;
+    camera.position.z = 50; // Adjusted camera position for better initial view
 
     // Renderer
     renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -292,13 +293,23 @@ visualizeBtn.addEventListener('click', () => {
     // 1. Clear previous visualization
     assetSpheres.forEach(sphere => scene.remove(sphere));
     assetSpheres = [];
+    if (sunSphere) {
+        scene.remove(sunSphere);
+        sunSphere = null;
+    }
     currentDisplayData = null;
 
-    // 2. Get data from forms
+    const inputMode = document.querySelector('input[name="input-mode"]:checked').value;
+
+    // 2. Create Sun if in amount mode (independent of other assets)
+    if (inputMode === 'amount') {
+        createSun();
+    }
+
+    // 3. Get data from forms
     const assetForms = document.querySelectorAll('.asset-form');
     let assets = [];
     let totalValue = 0;
-    const inputMode = document.querySelector('input[name="input-mode"]:checked').value;
 
     assetForms.forEach(form => {
         let major = form.querySelector('select[name="major-category"]').value;
@@ -314,31 +325,37 @@ visualizeBtn.addEventListener('click', () => {
         }
     });
 
+    // 4. If there are no assets, stop here. The sun (if in amount mode) is already created.
     if (assets.length === 0) {
-        alert('有効な資産データがありません。');
+        if (inputMode !== 'amount') {
+             alert('有効な資産データがありません。');
+        }
         return;
     }
 
-    // 3. Process data (calculate percentages)
+    // 5. Process and visualize assets if they exist
     if (inputMode === 'percentage' && Math.abs(totalValue - 100) > 0.1) {
         alert(`割合の合計が100%になりません。（現在: ${totalValue.toFixed(1)}%）`);
         return;
     }
 
     assets.forEach(asset => {
-        asset.percent = (inputMode === 'amount') ? (asset.value / totalValue) * 100 : asset.value;
+        asset.percent = (inputMode === 'amount' && totalValue > 0) ? (asset.value / totalValue) * 100 : asset.value;
     });
 
-    // 4. Group by major category
+    // 6. Group by major category
     const groupedAssets = {};
     let minorColorIndex = 0;
     const minorColorMap = {};
 
     assets.forEach(asset => {
         if (!groupedAssets[asset.major]) {
-            groupedAssets[asset.major] = { totalPercent: 0, children: [] };
+            groupedAssets[asset.major] = { totalPercent: 0, totalValue: 0, children: [] };
         }
         groupedAssets[asset.major].totalPercent += asset.percent;
+        if (inputMode === 'amount') {
+            groupedAssets[asset.major].totalValue += asset.value;
+        }
         
         if (!minorColorMap[asset.minor]) {
             minorColorMap[asset.minor] = PARTICLE_COLOR_PALETTE[minorColorIndex % PARTICLE_COLOR_PALETTE.length];
@@ -355,20 +372,91 @@ visualizeBtn.addEventListener('click', () => {
         displayOptionsContainer.style.display = 'none';
     }
 
-    // 5. Create spheres
+    // 7. Create asset spheres
     createSpheres(groupedAssets);
 });
+
+function createSun() {
+    const sunAmount = 100000000; // 1億円
+    const totalParticles = Math.round((sunAmount / 10000) * 3); // 30,000
+
+    const positions = [];
+    const colors = [];
+    
+    const sunColorsData = [
+        { color: new THREE.Color(0xff0000), count: Math.floor(totalParticles / 3) }, // Red
+        { color: new THREE.Color(0xffff00), count: Math.floor(totalParticles / 3) }, // Yellow
+        { color: new THREE.Color(0xffa500), count: 0 } // Orange
+    ];
+    sunColorsData[2].count = totalParticles - sunColorsData[0].count - sunColorsData[1].count; // Orange gets the rest
+
+    const particleColors = [];
+    sunColorsData.forEach(data => {
+        for (let i = 0; i < data.count; i++) {
+            particleColors.push(data.color);
+        }
+    });
+
+    // Shuffle colors
+    for (let i = particleColors.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [particleColors[i], particleColors[j]] = [particleColors[j], particleColors[i]];
+    }
+
+    for (let i = 0; i < totalParticles; i++) {
+        const phi = Math.acos(-1 + (2 * i) / (totalParticles - 1));
+        const theta = Math.sqrt(totalParticles * Math.PI) * phi;
+
+        const p = new THREE.Vector3();
+        const radius = Math.cbrt(Math.random());
+        p.setFromSphericalCoords(radius, phi, theta);
+        positions.push(p.x, p.y, p.z);
+
+        const particleColor = particleColors[i];
+        colors.push(particleColor.r, particleColor.g, particleColor.b);
+    }
+
+    const geometry = new THREE.BufferGeometry();
+    geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+    geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+
+    const sphereRadius = Math.pow(totalParticles, 1/3) * 0.6;
+    geometry.scale(sphereRadius, sphereRadius, sphereRadius);
+
+    const material = new THREE.PointsMaterial({
+        size: 0.1,
+        vertexColors: true,
+        blending: THREE.AdditiveBlending,
+        transparent: true,
+        opacity: 0.9,
+        depthWrite: false,
+        sizeAttenuation: true,
+    });
+
+    sunSphere = new THREE.Points(geometry, material);
+    sunSphere.position.set(0, 0, 0); // Center of the scene
+    scene.add(sunSphere);
+}
+
 
 function createSpheres(groupedAssets) {
     const majorCategories = Object.keys(groupedAssets);
     const angleStep = (2 * Math.PI) / majorCategories.length;
-    const orbitRadius = majorCategories.length > 1 ? 15 : 0;
+    const orbitRadius = 30; // Assets always orbit the sun
 
     majorCategories.forEach((major, index) => {
         const groupData = groupedAssets[major];
 
-        // 5 particles per 0.1%
-        const totalParticles = Math.max(1, Math.round(groupData.totalPercent * 100));
+        const inputMode = document.querySelector('input[name="input-mode"]:checked').value;
+        let totalParticles;
+
+        if (inputMode === 'amount') {
+            // 1万円で3個のパーティクル
+            totalParticles = Math.max(1, Math.round((groupData.totalValue / 10000) * 3));
+        } else {
+            // 以前のロジック (割合ベース)
+            totalParticles = Math.max(1, Math.round(groupData.totalPercent * 100));
+        }
 
         const positions = [];
         const colors = [];
@@ -377,8 +465,11 @@ function createSpheres(groupedAssets) {
         const particleColors = [];
         let assignedParticles = 0;
 
+        // Avoid division by zero if totalPercent is 0
+        const totalPercentForGroup = groupData.totalPercent > 0 ? groupData.totalPercent : 1;
+
         groupData.children.forEach((child, childIndex) => {
-            const proportion = child.percent / groupData.totalPercent;
+            const proportion = child.percent / totalPercentForGroup;
             let numParticlesForChild;
 
             if (childIndex === groupData.children.length - 1) {
@@ -395,6 +486,7 @@ function createSpheres(groupedAssets) {
             }
         });
 
+        // Shuffle colors
         for (let i = particleColors.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1));
             [particleColors[i], particleColors[j]] = [particleColors[j], particleColors[i]];
