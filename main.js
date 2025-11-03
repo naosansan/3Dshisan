@@ -24,7 +24,10 @@ let currentDisplayData = null;
 const MAJOR_CATEGORIES = ['投資信託', 'ETF', '個別株', '暗号資産', '現金', 'その他'];
 const PARTICLE_COLOR_PALETTE = [
     0xff6347, 0x4682b4, 0x32cd32, 0xdaa520, 0x6a5acd, 0xff69b4,
-    0x00ced1, 0xf08080, 0x9370db, 0x7cfc00, 0x1e90ff, 0xffd700
+    0x00ced1, 0xf08080, 0x9370db, 0x7cfc00, 0x1e90ff, 0xffd700,
+    0x8a2be2, 0xa52a2a, 0x5f9ea0, 0xd2691e, 0xff7f50, 0x6495ed,
+    0xdc143c, 0x008b8b, 0xb8860b, 0x006400, 0x8b008b, 0x556b2f,
+    0xff8c00, 0x9932cc, 0x8b0000, 0xe9967a, 0x483d8b, 0x2f4f4f
 ];
 
 // --- UI Logic ---
@@ -303,14 +306,21 @@ visualizeBtn.addEventListener('click', () => {
     // 3. Get data from forms
     const assetForms = document.querySelectorAll('.asset-form');
     let assets = [];
-    let totalValue = 0;
+        let totalValue = 0;
+    let unknownMinorCount = 0;
 
     assetForms.forEach(form => {
         let major = form.querySelector('select[name="major-category"]').value;
         if (major === 'その他') {
             major = form.querySelector('input[name="custom-major-category"]').value || 'その他';
         }
-        const minor = form.querySelector('input[name="minor-category"]').value || '（不明）';
+                const minorInput = form.querySelector('input[name="minor-category"]');
+        let minor = minorInput.value.trim();
+
+        if (!minor) {
+            minor = `（不明）_${unknownMinorCount}`;
+            unknownMinorCount++;
+        }
         const value = parseFloat(form.querySelector('input[name="value"]').value) || 0;
         
         if (value > 0) {

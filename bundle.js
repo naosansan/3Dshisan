@@ -28822,7 +28822,25 @@ void main() {
     9662683,
     8190976,
     2003199,
-    16766720
+    16766720,
+    9055202,
+    10824234,
+    6266528,
+    13789470,
+    16744272,
+    6591981,
+    14423100,
+    35723,
+    12092939,
+    25600,
+    9109643,
+    5597999,
+    16747520,
+    10040012,
+    9109504,
+    15308410,
+    4734347,
+    3100495
   ];
   var assetFormCount = 0;
   function addAssetForm() {
@@ -28916,8 +28934,8 @@ void main() {
   });
   function init() {
     scene = new Scene();
-    camera = new PerspectiveCamera(40, window.innerWidth / window.innerHeight, 0.1, 2e3);
-    camera.position.z = 150;
+    camera = new PerspectiveCamera(25, window.innerWidth / window.innerHeight, 0.1, 2e3);
+    camera.position.z = 200;
     renderer = new WebGLRenderer({ antialias: true });
     renderer.setPixelRatio(window.devicePixelRatio);
     renderer.setSize(window.innerWidth, window.innerHeight);
@@ -29027,12 +29045,18 @@ void main() {
     const assetForms = document.querySelectorAll(".asset-form");
     let assets = [];
     let totalValue = 0;
+    let unknownMinorCount = 0;
     assetForms.forEach((form) => {
       let major = form.querySelector('select[name="major-category"]').value;
       if (major === "\u305D\u306E\u4ED6") {
         major = form.querySelector('input[name="custom-major-category"]').value || "\u305D\u306E\u4ED6";
       }
-      const minor = form.querySelector('input[name="minor-category"]').value || "\uFF08\u4E0D\u660E\uFF09";
+      const minorInput = form.querySelector('input[name="minor-category"]');
+      let minor = minorInput.value.trim();
+      if (!minor) {
+        minor = `\uFF08\u4E0D\u660E\uFF09_${unknownMinorCount}`;
+        unknownMinorCount++;
+      }
       const value = parseFloat(form.querySelector('input[name="value"]').value) || 0;
       if (value > 0) {
         assets.push({ major, minor, value });
