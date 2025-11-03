@@ -460,10 +460,12 @@ function createSpheres(groupedAssets) {
 
         if (inputMode === 'amount') {
             const value = groupData.totalValue;
-            sphereRadius = 20 * Math.pow(value / 100000000, 1/3);
-            totalParticles = Math.round((value / 10000) * 5);
+            // New: Radius is directly proportional to value
+            sphereRadius = 20 * (value / 100000000);
+            totalParticles = Math.round((value / 10000) * 10);
         } else { // percentage mode
-            sphereRadius = 2 * Math.pow(groupData.totalPercent, 1/3);
+            // Also make percentage mode linear for consistency
+            sphereRadius = 10 * (groupData.totalPercent / 100);
             totalParticles = Math.max(200, Math.round(groupData.totalPercent * 500));
         }
 

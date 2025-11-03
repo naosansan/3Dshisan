@@ -29153,10 +29153,10 @@ void main() {
       let totalParticles;
       if (inputMode === "amount") {
         const value = groupData.totalValue;
-        sphereRadius = 20 * Math.pow(value / 1e8, 1 / 3);
-        totalParticles = Math.round(value / 1e4 * 5);
+        sphereRadius = 20 * (value / 1e8);
+        totalParticles = Math.round(value / 1e4 * 10);
       } else {
-        sphereRadius = 2 * Math.pow(groupData.totalPercent, 1 / 3);
+        sphereRadius = 10 * (groupData.totalPercent / 100);
         totalParticles = Math.max(200, Math.round(groupData.totalPercent * 500));
       }
       const positions = [];
