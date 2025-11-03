@@ -1,5 +1,5 @@
 {
-  "name": "3dshisan-2nd",
+  "name": "3dshisan",
   "version": "1.0.0",
   "main": "main.js",
   "scripts": {
@@ -11,8 +11,5 @@
   "description": "",
   "dependencies": {
     "three": "^0.181.0"
-  },
-  "devDependencies": {
-    "esbuild": "^0.25.12"
   }
 }
