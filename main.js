@@ -156,8 +156,8 @@ function init() {
     scene = new THREE.Scene();
 
     // Camera
-    camera = new THREE.PerspectiveCamera(40, window.innerWidth / window.innerHeight, 0.1, 2000); // FOV changed to 40
-    camera.position.z = 150; // Adjusted camera position for new FOV
+    camera = new THREE.PerspectiveCamera(25, window.innerWidth / window.innerHeight, 0.1, 2000); // FOV changed to 25
+    camera.position.z = 200; // Adjusted camera position for new FOV
 
     // Renderer
     renderer = new THREE.WebGLRenderer({ antialias: true });
