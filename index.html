@@ -15,6 +15,23 @@
             <label><input type="radio" name="input-mode" value="percentage"> パーセンテージ</label>
         </div>
 
+        <div id="bulk-input-area" class="control-group">
+            <p>2. 一括入力</p>
+            <div>
+                <label>大カテゴリーを選択</label>
+                <select id="bulk-major-category">
+                    <!-- Options will be populated by JS -->
+                </select>
+                <input type="text" id="bulk-custom-major-category" class="custom-major-category" style="display: none; margin-top: 5px;" placeholder="大カテゴリー名を入力">
+            </div>
+            <div>
+                <label>小カテゴリー, 金額(or %) を貼り付け (Excelからコピー＆ペーストも可能)</label>
+                <textarea id="bulk-paste-input" rows="5" placeholder="S&P500,50000
+NASDAQ100,25000"></textarea>
+            </div>
+            <button id="bulk-add-btn" style="margin-top: 10px;">一括で追加</button>
+        </div>
+
         <div id="asset-forms-container">
             <!-- Asset forms will be injected here by JavaScript -->
         </div>
@@ -25,7 +42,7 @@
         </div>
 
         <div id="display-options-container" class="control-group" style="display: none;">
-            <p>2. 表示オプション</p>
+            <p>3. 表示オプション</p>
             <label><input type="radio" name="display-mode" value="amount_percent" checked> 金額と%</label>
             <label><input type="radio" name="display-mode" value="percent_only"> %のみ</label>
         </div>
