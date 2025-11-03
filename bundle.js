@@ -28874,54 +28874,6 @@ void main() {
   displayModeRadios.forEach((radio) => {
     radio.addEventListener("change", updateTooltipContent);
   });
-  var bulkMajorCategorySelect = document.getElementById("bulk-major-category");
-  var bulkCustomMajorCategoryInput = document.getElementById("bulk-custom-major-category");
-  var bulkPasteInput = document.getElementById("bulk-paste-input");
-  var bulkAddBtn = document.getElementById("bulk-add-btn");
-  bulkMajorCategorySelect.innerHTML = MAJOR_CATEGORIES.map((c) => `<option value="${c}">${c}</option>`).join("");
-  bulkMajorCategorySelect.addEventListener("change", () => {
-    bulkCustomMajorCategoryInput.style.display = bulkMajorCategorySelect.value === "\u305D\u306E\u4ED6" ? "block" : "none";
-  });
-  bulkAddBtn.addEventListener("click", () => {
-    let major = bulkMajorCategorySelect.value;
-    if (major === "\u305D\u306E\u4ED6") {
-      major = bulkCustomMajorCategoryInput.value.trim();
-    }
-    if (!major) {
-      alert("\u4E00\u62EC\u5165\u529B\u7528\u306E\u5927\u30AB\u30C6\u30B4\u30EA\u30FC\u3092\u9078\u629E\u307E\u305F\u306F\u5165\u529B\u3057\u3066\u304F\u3060\u3055\u3044\u3002");
-      return;
-    }
-    const text = bulkPasteInput.value.trim();
-    if (!text) {
-      alert("\u8CBC\u308A\u4ED8\u3051\u308B\u30C7\u30FC\u30BF\u3092\u5165\u529B\u3057\u3066\u304F\u3060\u3055\u3044\u3002");
-      return;
-    }
-    const lines = text.split("\n");
-    lines.forEach((line) => {
-      if (!line.trim()) return;
-      const parts = line.split(/[\t,]/);
-      if (parts.length < 2) return;
-      const [minor, value] = parts.map((p) => p.trim());
-      addAssetForm();
-      const newForm = document.getElementById(`asset-form-${assetFormCount}`);
-      if (!newForm) return;
-      const majorSelect = newForm.querySelector('select[name="major-category"]');
-      const customMajorInput = newForm.querySelector('input[name="custom-major-category"]');
-      const minorInput = newForm.querySelector('input[name="minor-category"]');
-      const valueInput = newForm.querySelector('input[name="value"]');
-      const isOther = !MAJOR_CATEGORIES.includes(major);
-      if (isOther) {
-        majorSelect.value = "\u305D\u306E\u4ED6";
-        customMajorInput.style.display = "block";
-        customMajorInput.value = major;
-      } else {
-        majorSelect.value = major;
-      }
-      minorInput.value = minor;
-      valueInput.value = value;
-    });
-    bulkPasteInput.value = "";
-  });
   function init() {
     scene = new Scene();
     camera = new PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 2e3);
