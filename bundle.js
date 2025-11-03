@@ -29145,7 +29145,7 @@ void main() {
   function createSpheres(groupedAssets) {
     const majorCategories = Object.keys(groupedAssets);
     const angleStep = 2 * Math.PI / majorCategories.length;
-    const orbitRadius = 60;
+    const orbitRadius = 80;
     majorCategories.forEach((major, index) => {
       const groupData = groupedAssets[major];
       const inputMode = "amount";

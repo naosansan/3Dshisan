@@ -449,7 +449,7 @@ function createSun() {
 function createSpheres(groupedAssets) {
     const majorCategories = Object.keys(groupedAssets);
     const angleStep = (2 * Math.PI) / majorCategories.length;
-    const orbitRadius = 60; // Increased orbit radius for better separation
+        const orbitRadius = 80; // Further increased orbit radius
 
     majorCategories.forEach((major, index) => {
         const groupData = groupedAssets[major];
